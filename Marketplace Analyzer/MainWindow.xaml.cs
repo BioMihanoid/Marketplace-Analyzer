@@ -56,7 +56,7 @@ public partial class MainWindow : Window
             if (string.IsNullOrEmpty(loadedFilePath)) return;
             
             var ozonParams = new OzonParams(SheetNameBox.Text, NameColBox.Text, 
-                QtyColBox.Text, CostColBox.Text);
+                QtyColBox.Text, CostColBox.Text, ReturnColBox.Text);
 
             var yandexParams = new YandexParams(TransactionsSheet.Text, NumberOrder1.Text, NameProduct.Text, 
                 CountInDelivery.Text, ServicesSheet.Text, NumberOrder2.Text, IncomeFromMarket.Text, StatusPay.Text);

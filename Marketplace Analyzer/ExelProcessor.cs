@@ -17,6 +17,7 @@ public class ExelProcessor
             string name = row.Cell(ozonParams.NameColumn).GetString();
             if (!int.TryParse(row.Cell(ozonParams.QtyColumn).GetString(), out int qty)) continue;
             if (!double.TryParse(row.Cell(ozonParams.CostColumn).GetString(), out double cost)) continue;
+            if (double.TryParse(row.Cell(ozonParams.ReturnColumn).GetString(), out double ret)) continue;
 
             if (result.ContainsKey(name))
             {

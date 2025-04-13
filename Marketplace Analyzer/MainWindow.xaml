@@ -41,6 +41,8 @@
                     <TextBox Name="QtyColBox" Width="40" Text="I"/>
                     <TextBlock Text="Цена (колонка):" Margin="10,0,5,0" VerticalAlignment="Center"/>
                     <TextBox Name="CostColBox" Width="40" Text="N"/>
+                    <TextBlock Text="Возвращено на сумму (колонка):" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                    <TextBox Name="ReturnColBox" Width="40" Text="O"/>
                 </StackPanel>
             </StackPanel>
             
