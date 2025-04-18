@@ -1,4 +1,4 @@
-﻿namespace Marketplace_Analyzer;
+﻿namespace Marketplace_Analyzer.Models;
 
 public class ResultItem
 {

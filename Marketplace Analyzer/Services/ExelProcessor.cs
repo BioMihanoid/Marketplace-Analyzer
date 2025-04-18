@@ -1,18 +1,17 @@
 ﻿using ClosedXML.Excel;
+using Marketplace_Analyzer.Models;
 
-namespace Marketplace_Analyzer;
+namespace Marketplace_Analyzer.Services;
 
-
-public class ExelProcessor
+public static class ExelProcessor
 {
-    public static List<ResultItem> ProcessOzonReport(string filePath, OzonParams ozonParams)
+    public static List<ResultItem> ProcessOzonReport(string filePath, OzonParams ozonParams, ref double sumValue)
     {
         var result = new Dictionary<string, (int qty, double cost)>();
         using var workbook = new XLWorkbook(filePath);
         var ws = workbook.Worksheet(ozonParams.Sheet);
-
-        int skipRows = 0;
-        foreach (var row in ws.RowsUsed().Skip(skipRows))
+        
+        foreach (var row in ws.RowsUsed())
         {
             string name = row.Cell(ozonParams.NameColumn).GetString();
             if (!int.TryParse(row.Cell(ozonParams.QtyColumn).GetString(), out int qty)) continue;
@@ -41,6 +40,11 @@ public class ExelProcessor
             });
         }
 
+        foreach (var el in output)
+        {
+            sumValue += (el.TotalQty * el.AvgPrice);
+        }
+        
         return output;
     }
     
@@ -56,7 +60,7 @@ public class ExelProcessor
         public double Cost { get; set; } = cost;
     }
 
-    public static List<ResultItem> ProcessYandexReport(string filePath, YandexParams yandexParams)
+    public static List<ResultItem> ProcessYandexReport(string filePath, YandexParams yandexParams, ref double sumValue)
     {
         var result = new Dictionary<string, (int qty, double cost)>();
         using var workbook = new XLWorkbook(filePath);
@@ -107,7 +111,7 @@ public class ExelProcessor
         foreach (var order in numberIncomeDict)
         {
             string orderNumber = order.Key;
-            var incomes = order.Value; // на всякий случай обрабатываем, если в одном заказе несколько доходов
+            var incomes = order.Value; 
             double totalIncome = incomes.Sum();
 
             if (!map.ContainsKey(orderNumber)) continue;
@@ -145,6 +149,11 @@ public class ExelProcessor
                 TotalQty = kvp.Value.qty,
                 AvgPrice = Math.Round(kvp.Value.cost / kvp.Value.qty, 2)
             });
+        }
+
+        foreach (var el in output)
+        {
+            sumValue += (el.TotalQty * el.AvgPrice);
         }
 
         return output;

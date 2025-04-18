@@ -1,22 +1,15 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
 using ClosedXML.Excel;
+using Marketplace_Analyzer.Models;
+using Marketplace_Analyzer.Services;
 using Microsoft.Win32;
 
-namespace Marketplace_Analyzer;
+namespace Marketplace_Analyzer.Views;
 
 public partial class MainWindow : Window
     {
-        private string loadedFilePath;
-        private List<ResultItem> resultItems = new();
+        private string _loadedFilePath;
+        private List<ResultItem> _resultItems = new();
 
         public MainWindow()
         {
@@ -28,14 +21,14 @@ public partial class MainWindow : Window
             var openFileDialog = new OpenFileDialog { Filter = "Excel файлы (*.xlsx)|*.xlsx" };
             if (openFileDialog.ShowDialog() == true)
             {
-                loadedFilePath = openFileDialog.FileName;
-                FilePathText.Text = loadedFilePath;
+                _loadedFilePath = openFileDialog.FileName;
+                FilePathText.Text = _loadedFilePath;
             }
         }
 
         private void MarketplaceComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(loadedFilePath))
+            if (!string.IsNullOrEmpty(_loadedFilePath))
             {
                 if (MarketplaceCombo.SelectedIndex == 0)
                 {
@@ -53,7 +46,7 @@ public partial class MainWindow : Window
 
         private void Calculate_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(loadedFilePath)) return;
+            if (string.IsNullOrEmpty(_loadedFilePath)) return;
             
             var ozonParams = new OzonParams(SheetNameBox.Text, NameColBox.Text, 
                 QtyColBox.Text, CostColBox.Text, ReturnColBox.Text);
@@ -61,23 +54,26 @@ public partial class MainWindow : Window
             var yandexParams = new YandexParams(TransactionsSheet.Text, NumberOrder1.Text, NameProduct.Text, 
                 CountInDelivery.Text, ServicesSheet.Text, NumberOrder2.Text, IncomeFromMarket.Text, StatusPay.Text);
 
+            var sumValue = 0.0;
             switch (MarketplaceCombo.SelectedIndex)
             {
                 case 0:
-                    resultItems = ExelProcessor.ProcessOzonReport(loadedFilePath, ozonParams);
+                    _resultItems = ExelProcessor.ProcessOzonReport(_loadedFilePath, ozonParams, ref sumValue);
                     break;
                 case 1: 
-                    resultItems = ExelProcessor.ProcessYandexReport(loadedFilePath, yandexParams);
+                    _resultItems = ExelProcessor.ProcessYandexReport(_loadedFilePath, yandexParams, ref sumValue);
                     break;
             }
-            ResultDataGrid.ItemsSource = resultItems;
+            ResultDataGrid.ItemsSource = _resultItems;
             SaveButton.IsEnabled = true;
             ResetButton.IsEnabled = true;
+            SumValue.Text = "Итоговая стоимость: " + sumValue.ToString("F2") + " рублей";
+            SumValue.IsEnabled = true;
         }
 
         private void SaveToExcel_Click(object sender, RoutedEventArgs e)
         {
-            if (resultItems.Count == 0) return;
+            if (_resultItems.Count == 0) return;
 
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
@@ -93,11 +89,11 @@ public partial class MainWindow : Window
                 ws.Cell(1, 2).Value = "Количество";
                 ws.Cell(1, 3).Value = "Средняя цена";
 
-                for (int i = 0; i < resultItems.Count; i++)
+                for (int i = 0; i < _resultItems.Count; i++)
                 {
-                    ws.Cell(i + 2, 1).Value = resultItems[i].Name;
-                    ws.Cell(i + 2, 2).Value = resultItems[i].TotalQty;
-                    ws.Cell(i + 2, 3).Value = resultItems[i].AvgPrice;
+                    ws.Cell(i + 2, 1).Value = _resultItems[i].Name;
+                    ws.Cell(i + 2, 2).Value = _resultItems[i].TotalQty;
+                    ws.Cell(i + 2, 3).Value = _resultItems[i].AvgPrice;
                 }
 
                 workbook.SaveAs(saveFileDialog.FileName);
@@ -107,7 +103,7 @@ public partial class MainWindow : Window
 
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
-            loadedFilePath = string.Empty;
+            _loadedFilePath = string.Empty;
             FilePathText.Text = "Файл не выбран";
             ResultDataGrid.ItemsSource = null;
             SaveButton.IsEnabled = false;
@@ -116,5 +112,7 @@ public partial class MainWindow : Window
             OzonOptions.Visibility = Visibility.Collapsed;
             YandexOptions.Visibility = Visibility.Collapsed;
             ResetButton.IsEnabled = false;
+            SumValue.IsEnabled = false;
+            SumValue.Text = "";
         }
     }
